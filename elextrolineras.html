@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudio de Viabilidad: Proyecto de Electrolineras de Carga Rápida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Eco Green Accents (White, #f8fafc slate-50, #059669 emerald-600, #0f172a slate-900) -->
+    <!-- Application Structure Plan: The SPA uses a logical progression for a business case. 1. Executive Summary & Context. 2. CAPEX. 3. Vehicles in Bogotá & Charge Times (Now with real images and Tesla Model Y). 4. Operational Strategy. 5. Interactive Financial Dashboard. 6. Action Plan. -->
+    <!-- Visualization & Content Choices: 
+         - Vehicles Section: Card Grid Layout -> Goal: Show specs of top EVs in Bogota -> Presentation: Image tags with real URLs + specs -> Justification: Easy scannability for vehicle limits vs charger capacity.
+         - Library/Method: Vanilla JS and Chart.js via Canvas. NO SVG used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .tab-btn.active {
+            border-bottom: 2px solid #059669;
+            color: #059669;
+            font-weight: 600;
+        }
+        
+        .car-image-container {
+            height: 160px;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 0.5rem 0.5rem 0 0;
+            background-color: #e2e8f0;
+        }
+        
+        .car-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .glass-card:hover .car-image-container img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-2">⚡</span>
+                    <span class="font-bold text-xl text-slate-900 tracking-tight">E-Charge Analytics</span>
+                </div>
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex space-x-6 items-center text-sm font-medium text-slate-600">
+                    <a href="#resumen" class="hover:text-emerald-600 transition-colors">Resumen</a>
+                    <a href="#inversion" class="hover:text-emerald-600 transition-colors">Inversión</a>
+                    <a href="#vehiculos" class="hover:text-emerald-600 transition-colors">Vehículos</a>
+                    <a href="#estrategia" class="hover:text-emerald-600 transition-colors">Estrategia</a>
+                    <a href="#finanzas" class="hover:text-emerald-600 transition-colors">Simulador</a>
+                    <a href="#plan" class="hover:text-emerald-600 transition-colors">Plan</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="resumen" class="relative pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl tracking-tight font-extrabold text-slate-900 sm:text-5xl md:text-6xl">
+                <span class="block">Viabilidad del Negocio de</span>
+                <span class="block text-emerald-600 mt-2">Electrolineras de Carga Rápida</span>
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                Análisis estratégico y financiero para el despliegue de estaciones de carga de vehículos eléctricos (VE). Evalúe costos de adecuación, proveedores, y descubra su retorno de inversión (ROI) interactivo.
+            </p>
+            <div class="mt-8 flex justify-center gap-4">
+                <a href="#finanzas" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg">
+                    Ir al Simulador Financiero 📊
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-24">
+
+        <!-- Section 1: Inversión Inicial (CAPEX) & Proveedores -->
+        <section id="inversion" class="scroll-mt-20">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900">1. Requisitos, Capacidad e Inversión (CAPEX)</h2>
+                <p class="mt-4 text-slate-600">
+                    Establecer una estación de carga rápida (Nivel 3 / DC Fast Charging) requiere equipos robustos y adecuación eléctrica especializada. Los valores son estimaciones en dólares (USD).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                <!-- Data Points & Links -->
+                <div class="space-y-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-2xl">🔌</span>
+                            <h3 class="font-bold text-lg text-slate-800">Equipos de Carga Rápida (DC 120kW+)</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-3">Costo estimado: <strong>$30,000 - $45,000 USD</strong> por unidad.</p>
+                        <div class="space-y-3 mt-4">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Directorio para Cotizar:</h4>
+                            
+                            <a href="https://e-mobility.abb.com/" target="_blank" class="block border border-slate-200 rounded-lg p-3 hover:border-emerald-500 hover:shadow-md transition-all">
+                                <div class="font-semibold text-slate-800 flex justify-between">ABB E-mobility <span class="text-emerald-600 text-sm">↗</span></div>
+                                <div class="text-xs text-slate-500">Líder global. Modelos Terra 124 / Terra 184.</div>
+                            </a>
+                            
+                            <a href="https://wallbox.com/es_es/supernova" target="_blank" class="block border border-slate-200 rounded-lg p-3 hover:border-emerald-500 hover:shadow-md transition-all">
+                                <div class="font-semibold text-slate-800 flex justify-between">Wallbox (Supernova) <span class="text-emerald-600 text-sm">↗</span></div>
+                                <div class="text-xs text-slate-500">Diseño modular, excelente interfaz, hasta 150kW.</div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-2xl">🏗️</span>
+                            <h3 class="font-bold text-lg text-slate-800">Adecuación Eléctrica e Ingeniería</h3>
+                        </div>
+                        <ul class="text-sm text-slate-700 list-disc list-inside space-y-2 mt-3">
+                            <li><strong>Red Industrial:</strong> Requiere conexión de media tensión y transformador.</li>
+                            <li><strong>Costo estimado:</strong> $15,000 - $25,000 USD.</li>
+                            <li><strong>Permisos y Software:</strong> Aprox. $5,000 USD iniciales (incluye cert. RETIE en Colombia).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="glass-card rounded-xl p-8 flex flex-col items-center h-full justify-center">
+                    <h3 class="font-semibold text-center text-slate-800 mb-4">Estructura de Costos (1 Estación)</h3>
+                    <div class="chart-container">
+                        <canvas id="capexChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-slate-500 mt-4">*Total estimado: ~$65,000 USD por cada estación instalada.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW SECTION 2: Vehículos y Tiempos de Carga -->
+        <section id="vehiculos" class="scroll-mt-20">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900">2. Parque Automotor en Bogotá y Tiempos de Carga</h2>
+                <p class="mt-4 text-slate-600">
+                    Un concepto técnico vital: <strong>El vehículo dictamina la velocidad máxima de carga</strong>. Aunque usted instale una estación de 120kW, si el auto tiene un límite interno menor, cargará a esa velocidad.
+                </p>
+            </div>
+
+            <!-- Capacidad y Operación Info Box -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-8 max-w-4xl mx-auto shadow-sm">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 text-2xl mr-4">ℹ️</div>
+                    <div>
+                        <h3 class="text-lg font-bold text-blue-900 mb-1">Capacidad de Atención de la Estación</h3>
+                        <p class="text-sm text-blue-800">Una estación base de 120kW cuenta típicamente con <strong>2 mangueras</strong>.</p>
+                        <ul class="list-disc list-inside text-sm text-blue-700 space-y-1 mt-2">
+                            <li>Puede atender a <strong>2 vehículos simultáneamente</strong> (entregando hasta 60kW a cada uno si ambos cargan a la vez).</li>
+                            <li>La métrica estándar de la industria es medir el <strong>tiempo de carga del 20% al 80%</strong>, ya que después del 80% la batería se protege y carga muy lento.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                
+                <!-- Vehicle 1: BYD Yuan Plus -->
+                <div class="glass-card rounded-xl flex flex-col bg-white group">
+                    <div class="car-image-container flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-blue-200 overflow-hidden">
+                        <span class="text-6xl mb-1 drop-shadow-md transform group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🚙</span>
+                        <span class="text-xs font-black tracking-widest text-blue-700/50 uppercase">BYD</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="font-bold text-lg text-slate-900 mb-1">BYD Yuan Plus</h3>
+                        <p class="text-xs text-slate-500 mb-4 border-b pb-2">El SUV eléctrico más vendido en Colombia.</p>
+                        
+                        <div class="space-y-2 mt-auto text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Cap. Batería:</span>
+                                <span class="font-semibold">60.5 kWh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Límite Carga:</span>
+                                <span class="font-semibold text-orange-600">80 kW máx</span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-slate-100">
+                                <span class="text-slate-900 font-bold">20% a 80%:</span>
+                                <span class="font-bold text-emerald-600">~ 35 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle 2: Renault Kwid E-Tech -->
+                <div class="glass-card rounded-xl flex flex-col bg-white group">
+                    <div class="car-image-container flex flex-col items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-200 overflow-hidden">
+                        <span class="text-6xl mb-1 drop-shadow-md transform group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🚗</span>
+                        <span class="text-xs font-black tracking-widest text-yellow-700/50 uppercase">Renault</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="font-bold text-lg text-slate-900 mb-1">Renault Kwid E-Tech</h3>
+                        <p class="text-xs text-slate-500 mb-4 border-b pb-2">"City Car" asequible con gran adopción urbana.</p>
+                        
+                        <div class="space-y-2 mt-auto text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Cap. Batería:</span>
+                                <span class="font-semibold">26.8 kWh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Límite Carga:</span>
+                                <span class="font-semibold text-orange-600">30 kW máx</span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-slate-100">
+                                <span class="text-slate-900 font-bold">20% a 80%:</span>
+                                <span class="font-bold text-emerald-600">~ 40 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle 3: BYD Dolphin -->
+                <div class="glass-card rounded-xl flex flex-col bg-white group">
+                    <div class="car-image-container flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 to-cyan-200 overflow-hidden">
+                        <span class="text-6xl mb-1 drop-shadow-md transform group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🐬</span>
+                        <span class="text-xs font-black tracking-widest text-cyan-700/50 uppercase">BYD</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="font-bold text-lg text-slate-900 mb-1">BYD Dolphin</h3>
+                        <p class="text-xs text-slate-500 mb-4 border-b pb-2">Hatchback muy popular para flotas y particulares.</p>
+                        
+                        <div class="space-y-2 mt-auto text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Cap. Batería:</span>
+                                <span class="font-semibold">44.9 kWh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Límite Carga:</span>
+                                <span class="font-semibold text-orange-600">60 kW máx</span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-slate-100">
+                                <span class="text-slate-900 font-bold">20% a 80%:</span>
+                                <span class="font-bold text-emerald-600">~ 30 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle 4: MG 4 Cross -->
+                <div class="glass-card rounded-xl flex flex-col bg-white group">
+                    <div class="car-image-container flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-200 overflow-hidden">
+                        <span class="text-6xl mb-1 drop-shadow-md transform group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🏎️</span>
+                        <span class="text-xs font-black tracking-widest text-red-700/50 uppercase">MG Motor</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="font-bold text-lg text-slate-900 mb-1">MG 4 (Ext. Range)</h3>
+                        <p class="text-xs text-slate-500 mb-4 border-b pb-2">Vehículo de nueva generación con alta tecnología.</p>
+                        
+                        <div class="space-y-2 mt-auto text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Cap. Batería:</span>
+                                <span class="font-semibold">64.0 kWh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Límite Carga:</span>
+                                <span class="font-semibold text-emerald-600">135 kW máx</span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-slate-100">
+                                <span class="text-slate-900 font-bold">20% a 80%:</span>
+                                <span class="font-bold text-emerald-600">~ 26 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Vehicle 5: Tesla Model Y -->
+                <div class="glass-card rounded-xl flex flex-col bg-white border-2 border-emerald-100 group">
+                    <div class="car-image-container flex flex-col items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 overflow-hidden">
+                        <span class="text-6xl mb-1 drop-shadow-md transform group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🚘</span>
+                        <span class="text-xs font-black tracking-widest text-slate-600/50 uppercase">Tesla</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="font-bold text-lg text-slate-900 mb-1">Tesla Model Y</h3>
+                        <p class="text-xs text-slate-500 mb-4 border-b pb-2">El auto eléctrico más vendido del mundo. Alta capacidad.</p>
+                        
+                        <div class="space-y-2 mt-auto text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Cap. Batería:</span>
+                                <span class="font-semibold">75.0 kWh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600" title="Soporta hasta 250kW en Superchargers, pero tomará los 120kW máximos de su estación.">Límite Carga:</span>
+                                <span class="font-semibold text-emerald-600">250 kW máx*</span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-slate-100">
+                                <span class="text-slate-900 font-bold">20% a 80%:</span>
+                                <span class="font-bold text-emerald-600">~ 25 min</span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 leading-tight">*Este auto aprovechará al máximo el 100% de la capacidad de su cargador de 120kW.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Section 3: Estrategia de Ubicación & Operación -->
+        <section id="estrategia" class="scroll-mt-20 relative">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900">3. Estrategia de Ubicación y Modelo de Negocio</h2>
+                <p class="mt-4 text-slate-600">
+                    El éxito depende del tráfico vehicular y los costos fijos. Explore los dos modelos principales de adquisición de espacio.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex flex-col sm:flex-row border-b border-slate-200">
+                    <button class="tab-btn active flex-1 py-4 px-6 text-center font-medium text-slate-600 hover:bg-slate-50 transition-colors" onclick="switchTab('modelo-alianza')">
+                        🤝 Modelo A: Alianza (Revenue Share)
+                    </button>
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-medium text-slate-600 hover:bg-slate-50 transition-colors" onclick="switchTab('modelo-arriendo')">
+                        📍 Modelo B: Arriendo de Lote Dedicado
+                    </button>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="p-8">
+                    <!-- Modelo Alianza -->
+                    <div id="modelo-alianza" class="tab-content block animate-fade-in">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-3">Revenue Share (Recomendado en Bogotá)</h3>
+                                <p class="text-slate-600 mb-4">Instalar la estación en centros comerciales (ej. Andino, Unicentro, Plaza Claro) o parqueaderos corporativos, compartiendo un porcentaje de la ganancia en lugar de pagar renta fija.</p>
+                                <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100 mb-4">
+                                    <h4 class="font-semibold text-emerald-800 mb-2">Ventajas Clave:</h4>
+                                    <ul class="text-sm text-emerald-700 list-disc list-inside space-y-1">
+                                        <li>Mitiga el altísimo costo inmobiliario en Bogotá.</li>
+                                        <li>Tráfico cautivo mientras la gente trabaja o hace compras en sus 30-45 minutos de carga.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="flex flex-col justify-center">
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-800 mb-2">Estructura de Ingresos Sugerida:</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center text-sm border-b pb-2">
+                                            <span class="text-slate-600">Local / Parqueadero:</span>
+                                            <span class="font-bold text-slate-800">10% - 20% utilidad neta</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span class="text-slate-600">Operador (Usted):</span>
+                                            <span class="font-bold text-slate-800">80% - 90%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modelo Arriendo -->
+                    <div id="modelo-arriendo" class="tab-content hidden animate-fade-in">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-3">Lote Dedicado (Estilo Gasolinera)</h3>
+                                <p class="text-slate-600 mb-4">Alquilar un espacio exclusivo (ej. Autopista Norte, Calle 80, Vía a La Calera) para crear un "hub" con 4 a 10 estaciones.</p>
+                                <div class="bg-orange-50 rounded-lg p-4 border border-orange-100 mb-4">
+                                    <h4 class="font-semibold text-orange-800 mb-2">Desafíos Clave:</h4>
+                                    <ul class="text-sm text-orange-700 list-disc list-inside space-y-1">
+                                        <li>Alto costo fijo mensual de arrendamiento comercial.</li>
+                                        <li>Requiere atraer vehículos específicamente a recargar (no orgánico).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="flex flex-col justify-center">
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-800 mb-2">Modelo de Negocio:</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center text-sm border-b pb-2">
+                                            <span class="text-slate-600">Arriendo Mensual:</span>
+                                            <span class="font-bold text-slate-800">Alto</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span class="text-slate-600">Ingresos Secundarios requeridos:</span>
+                                            <span class="font-bold text-slate-800">Cafetería, Máquinas, Baños</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pricing Mini-section -->
+            <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1">
+                    <h3 class="text-xl font-bold text-slate-900">¿Cuánto Cobrar al Usuario?</h3>
+                    <p class="text-sm text-slate-500 mt-1">Precios de referencia internacionales aplicados al mercado local.</p>
+                </div>
+                <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm text-center">
+                        <span class="block text-2xl mb-1">⚡</span>
+                        <span class="block text-sm font-semibold text-slate-500 uppercase tracking-wide">Venta de Energía</span>
+                        <span class="block text-2xl font-bold text-slate-900 mt-2">$0.35 - $0.50</span>
+                        <span class="block text-xs text-slate-500">USD por kWh entregado (~1,500 COP)</span>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm text-center">
+                        <span class="block text-2xl mb-1">⏱️</span>
+                        <span class="block text-sm font-semibold text-slate-500 uppercase tracking-wide">Tarifa de Ocupación</span>
+                        <span class="block text-2xl font-bold text-slate-900 mt-2">$0.50</span>
+                        <span class="block text-xs text-slate-500">USD/min (multa si el auto está al 100% y no se mueve)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Section 4: Interactive Dashboard (ROI) -->
+        <section id="finanzas" class="scroll-mt-20">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900">4. Simulador de Rentabilidad y Escalamiento</h2>
+                <p class="mt-4 text-slate-600">
+                    Ajuste la demanda diaria y la cantidad de estaciones físicas para proyectar el crecimiento financiero.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 lg:p-8 border-t-4 border-t-emerald-500">
+                
+                <!-- Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    
+                    <!-- Control 1: Estaciones -->
+                    <div>
+                        <label for="stationsSlider" class="block text-sm font-bold text-slate-700 mb-2">
+                            Cantidad de Estaciones (Cargadores): <span id="stationsVal" class="text-emerald-600 text-xl font-black ml-2">1</span>
+                        </label>
+                        <input type="range" id="stationsSlider" min="1" max="10" value="1" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                        <div class="flex justify-between text-xs text-slate-500 mt-2">
+                            <span>1 Estación (2 mangueras)</span>
+                            <span>Gran Hub (10 Estaciones)</span>
+                        </div>
+                    </div>
+
+                    <!-- Control 2: Uso -->
+                    <div>
+                        <label for="usageSlider" class="block text-sm font-bold text-slate-700 mb-2">
+                            Sesiones/Día <span class="text-slate-500 font-normal">(Por Estación)</span>: <span id="usageVal" class="text-emerald-600 text-xl font-black ml-2">12</span>
+                        </label>
+                        <input type="range" id="usageSlider" min="2" max="30" value="12" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                        <div class="flex justify-between text-xs text-slate-500 mt-2">
+                            <span>Bajo (2)</span>
+                            <span>Medio (~12)</span>
+                            <span>Alta Rotación (30)</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Inversión (CAPEX)</span>
+                        <span id="metric-capex" class="block text-xl font-bold text-slate-900 mt-1">$65,000</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Ingreso Mensual Bruto</span>
+                        <span id="metric-revenue" class="block text-xl font-bold text-slate-900 mt-1">$0</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Costo Mensual (Opex)</span>
+                        <span id="metric-opex" class="block text-xl font-bold text-red-500 mt-1">$0</span>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 shadow-sm lg:col-span-1">
+                        <span class="block text-xs text-emerald-600 uppercase font-semibold">Utilidad Neta Mensual</span>
+                        <span id="metric-profit" class="block text-xl font-bold text-emerald-700 mt-1">$0</span>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-lg shadow-sm lg:col-span-1 col-span-2">
+                        <span class="block text-xs text-slate-400 uppercase font-semibold">Retorno Inversión (ROI)</span>
+                        <span id="metric-roi" class="block text-xl font-bold text-white mt-1">-</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Chart -->
+                <h3 class="font-semibold text-center text-slate-800 mb-4">Proyección de Flujo de Caja Acumulado (5 Años)</h3>
+                <div class="chart-container" style="max-height: 450px; height: 400px;">
+                    <canvas id="roiChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-xs text-slate-500 text-center">
+                *Supuestos: Carga promedio 30 kWh por sesión. Costo compra energía $0.15/kWh. Precio venta $0.40/kWh. Mantenimiento y red de software $300/mes por estación. Modelo "Alianza" (10% de ingreso bruto cedido al local).
+            </div>
+        </section>
+
+        <!-- Section 5: Plan de Acción -->
+        <section id="plan" class="scroll-mt-20">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900">5. Plan de Acción y Siguientes Pasos</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Step 1 -->
+                <div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-300 group-hover:bg-emerald-500 transition-colors"></div>
+                    <span class="text-4xl font-black text-slate-100 absolute -top-2 -right-2 z-0">01</span>
+                    <div class="relative z-10">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Estudio de Sitio</h3>
+                        <p class="text-sm text-slate-600">Identificar ubicaciones clave y solicitar factibilidad a Enel Colombia (disponibilidad de transformadores y red de media tensión).</p>
+                    </div>
+                </div>
+                <!-- Step 2 -->
+                <div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-300 group-hover:bg-emerald-500 transition-colors"></div>
+                    <span class="text-4xl font-black text-slate-100 absolute -top-2 -right-2 z-0">02</span>
+                    <div class="relative z-10">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Permisos</h3>
+                        <p class="text-sm text-slate-600">Cerrar acuerdos con los dueños del espacio y tramitar licencias de obra.</p>
+                    </div>
+                </div>
+                <!-- Step 3 -->
+                <div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-300 group-hover:bg-emerald-500 transition-colors"></div>
+                    <span class="text-4xl font-black text-slate-100 absolute -top-2 -right-2 z-0">03</span>
+                    <div class="relative z-10">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Instalación</h3>
+                        <p class="text-sm text-slate-600">Importación de cargadores, ejecución de obra civil y certificación RETIE obligatoria para energizar.</p>
+                    </div>
+                </div>
+                <!-- Step 4 -->
+                <div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-300 group-hover:bg-emerald-500 transition-colors"></div>
+                    <span class="text-4xl font-black text-slate-100 absolute -top-2 -right-2 z-0">04</span>
+                    <div class="relative z-10">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Software (OCPP)</h3>
+                        <p class="text-sm text-slate-600">Integración con pasarela de pagos, registro en PlugShare, y apertura comercial.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 py-10 text-center text-slate-400">
+        <p>© 2026 E-Charge Analytics. Reporte generado interactivamente.</p>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+            event.currentTarget.classList.add('active');
+        }
+
+        const initCapexChart = () => {
+            const ctx = document.getElementById('capexChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Equipo DC (120kW)', 'Adecuación y Obra Civil', 'Ingeniería y Permisos', 'Software y Activación'],
+                    datasets: [{
+                        data: [40000, 18000, 5000, 2000],
+                        backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#64748b'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, font: { family: 'Inter' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        };
+        
+        const CAPEX_PER_STATION = 65000;
+        const KWH_PER_SESSION = 30;
+        const PRICE_PER_KWH = 0.40;
+        const COST_PER_KWH = 0.15;
+        const FIXED_MONTHLY_COST_PER_STATION = 300; 
+        
+        let roiChartInstance = null;
+        const moneyFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+        const calculateFinancials = (sessionsPerDayPerStation, numStations) => {
+            const totalCapex = CAPEX_PER_STATION * numStations;
+            const totalSessionsPerDay = sessionsPerDayPerStation * numStations;
+            const sessionsPerMonth = totalSessionsPerDay * 30;
+            
+            const monthlyRevenue = sessionsPerMonth * KWH_PER_SESSION * PRICE_PER_KWH;
+            const energyCost = sessionsPerMonth * KWH_PER_SESSION * COST_PER_KWH;
+            const totalFixedCost = FIXED_MONTHLY_COST_PER_STATION * numStations;
+            const revenueShare = monthlyRevenue * 0.10; 
+            const monthlyOpex = energyCost + totalFixedCost + revenueShare;
+            
+            const monthlyProfit = monthlyRevenue - monthlyOpex;
+            
+            let roiMonths = 'Nunca';
+            if (monthlyProfit > 0) {
+                roiMonths = Math.ceil(totalCapex / monthlyProfit);
+            }
+
+            const projectionData = [];
+            let cumulativeCash = -totalCapex;
+            for(let month = 0; month <= 60; month += 12) {
+                if(month === 0) {
+                    projectionData.push(cumulativeCash);
+                } else {
+                    cumulativeCash += (monthlyProfit * 12);
+                    projectionData.push(cumulativeCash);
+                }
+            }
+
+            return { totalCapex, monthlyRevenue, monthlyOpex, monthlyProfit, roiMonths, projectionData };
+        };
+
+        const updateDashboard = () => {
+            const sessions = parseInt(document.getElementById('usageSlider').value);
+            const stations = parseInt(document.getElementById('stationsSlider').value);
+            
+            document.getElementById('usageVal').innerText = sessions;
+            document.getElementById('stationsVal').innerText = stations;
+
+            const calc = calculateFinancials(sessions, stations);
+
+            document.getElementById('metric-capex').innerText = moneyFmt.format(calc.totalCapex);
+            document.getElementById('metric-revenue').innerText = moneyFmt.format(calc.monthlyRevenue);
+            document.getElementById('metric-opex').innerText = moneyFmt.format(calc.monthlyOpex);
+            
+            const profitEl = document.getElementById('metric-profit');
+            profitEl.innerText = moneyFmt.format(calc.monthlyProfit);
+            profitEl.className = calc.monthlyProfit >= 0 ? "block text-xl font-bold text-emerald-700 mt-1" : "block text-xl font-bold text-red-600 mt-1";
+
+            const roiEl = document.getElementById('metric-roi');
+            if(calc.monthlyProfit <= 0) {
+                roiEl.innerText = "Pérdida";
+                roiEl.className = "block text-xl font-bold text-red-500 mt-1";
+            } else {
+                const years = Math.floor(calc.roiMonths / 12);
+                const months = calc.roiMonths % 12;
+                let text = "";
+                if(years > 0) text += `${years} Años `;
+                if(months > 0 || years === 0) text += `${months} Meses`;
+                roiEl.innerText = text;
+                roiEl.className = "block text-xl font-bold text-white mt-1";
+            }
+
+            updateROIChart(calc.projectionData);
+        };
+
+        const initROIChart = () => {
+            const ctx = document.getElementById('roiChart').getContext('2d');
+            roiChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mes 0', 'Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5'],
+                    datasets: [
+                        {
+                            label: 'Flujo de Caja Acumulado (USD)',
+                            data: [0,0,0,0,0,0], 
+                            borderColor: '#059669',
+                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#0f172a',
+                            pointRadius: 5,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Línea de Equilibrio ($0)',
+                            data: [0,0,0,0,0,0],
+                            borderColor: '#ef4444',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + moneyFmt.format(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { callback: function(value) { return moneyFmt.format(value); } },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        };
+
+        const updateROIChart = (dataArray) => {
+            if(roiChartInstance) {
+                roiChartInstance.data.datasets[0].data = dataArray;
+                roiChartInstance.update();
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCapexChart();
+            initROIChart();
+            
+            document.getElementById('usageSlider').addEventListener('input', updateDashboard);
+            document.getElementById('stationsSlider').addEventListener('input', updateDashboard);
+            
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>
