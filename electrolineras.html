@@ -7,11 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Chosen Palette: Warm Neutrals with Eco Green Accents (White, #f8fafc slate-50, #059669 emerald-600, #0f172a slate-900) -->
-    <!-- Application Structure Plan: The SPA uses a logical progression for a business case. 1. Executive Summary & Context. 2. CAPEX. 3. Vehicles in Bogotá & Charge Times (Now with real images and Tesla Model Y). 4. Operational Strategy. 5. Interactive Financial Dashboard. 6. Action Plan. -->
-    <!-- Visualization & Content Choices: 
-         - Vehicles Section: Card Grid Layout -> Goal: Show specs of top EVs in Bogota -> Presentation: Image tags with real URLs + specs -> Justification: Easy scannability for vehicle limits vs charger capacity.
-         - Library/Method: Vanilla JS and Chart.js via Canvas. NO SVG used. -->
+    <!-- Chosen Palette: Warm Neutrals with Eco Green Accents -->
+    <!-- Application Structure Plan: 1. Summary. 2. CAPEX. 3. Vehicles in Bogotá & Charge Times. 4. Operational Strategy. 5. Interactive Financial Dashboard (with full OPEX breakdown). 6. Action Plan. -->
+    <!-- Visualization & Content Choices: Vanilla JS and Chart.js via Canvas. NO SVG used. CSS Gradients for images to save weight. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <style>
@@ -56,20 +54,7 @@
         .car-image-container {
             height: 160px;
             width: 100%;
-            overflow: hidden;
             border-radius: 0.5rem 0.5rem 0 0;
-            background-color: #e2e8f0;
-        }
-        
-        .car-image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        
-        .glass-card:hover .car-image-container img {
-            transform: scale(1.05);
         }
     </style>
 </head>
@@ -173,7 +158,7 @@
             </div>
         </section>
 
-        <!-- NEW SECTION 2: Vehículos y Tiempos de Carga -->
+        <!-- SECTION 2: Vehículos y Tiempos de Carga -->
         <section id="vehiculos" class="scroll-mt-20">
             <div class="mb-10 text-center max-w-3xl mx-auto">
                 <h2 class="text-3xl font-bold text-slate-900">2. Parque Automotor en Bogotá y Tiempos de Carga</h2>
@@ -494,7 +479,7 @@
                 </div>
 
                 <!-- Metrics Grid -->
-                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                     <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
                         <span class="block text-xs text-slate-500 uppercase font-semibold">Inversión (CAPEX)</span>
                         <span id="metric-capex" class="block text-xl font-bold text-slate-900 mt-1">$65,000</span>
@@ -503,7 +488,7 @@
                         <span class="block text-xs text-slate-500 uppercase font-semibold">Ingreso Mensual Bruto</span>
                         <span id="metric-revenue" class="block text-xl font-bold text-slate-900 mt-1">$0</span>
                     </div>
-                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1 border-b-4 border-b-red-400">
                         <span class="block text-xs text-slate-500 uppercase font-semibold">Costo Mensual (Opex)</span>
                         <span id="metric-opex" class="block text-xl font-bold text-red-500 mt-1">$0</span>
                     </div>
@@ -517,6 +502,35 @@
                     </div>
                 </div>
 
+                <!-- Opex Breakdown Panel -->
+                <div class="mb-10 bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                    <h4 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
+                        <span>📉</span> Desglose de Costos Operativos (OPEX Mensual)
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-tight">Costo de Energía</span>
+                            <span id="opex-energy" class="text-lg font-bold text-slate-700">$0</span>
+                            <span class="text-[10px] text-slate-400 mt-1 line-clamp-1" title="Estimado a $0.15 USD / kWh">~ $0.15 USD / kWh</span>
+                        </div>
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-tight">Mnt. y Software</span>
+                            <span id="opex-fixed" class="text-lg font-bold text-slate-700">$0</span>
+                            <span class="text-[10px] text-slate-400 mt-1 line-clamp-1" title="Costo fijo por estación instalada">Fijo por estación</span>
+                        </div>
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-tight">Comisión Pasarela</span>
+                            <span id="opex-payment" class="text-lg font-bold text-slate-700">$0</span>
+                            <span class="text-[10px] text-slate-400 mt-1 line-clamp-1" title="3.5% del ingreso bruto (Tarjetas/App)">3.5% del ingreso</span>
+                        </div>
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-tight">Pago Local (Alianza)</span>
+                            <span id="opex-revshare" class="text-lg font-bold text-slate-700">$0</span>
+                            <span class="text-[10px] text-slate-400 mt-1 line-clamp-1" title="10% del ingreso bruto cedido">10% del ingreso</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Dynamic Chart -->
                 <h3 class="font-semibold text-center text-slate-800 mb-4">Proyección de Flujo de Caja Acumulado (5 Años)</h3>
                 <div class="chart-container" style="max-height: 450px; height: 400px;">
@@ -525,7 +539,7 @@
             </div>
             
             <div class="mt-4 text-xs text-slate-500 text-center">
-                *Supuestos: Carga promedio 30 kWh por sesión. Costo compra energía $0.15/kWh. Precio venta $0.40/kWh. Mantenimiento y red de software $300/mes por estación. Modelo "Alianza" (10% de ingreso bruto cedido al local).
+                *Supuestos: Carga promedio 30 kWh por sesión. Costo compra energía $0.15/kWh. Precio venta $0.40/kWh. Mantenimiento y red de software $300/mes por estación. Comisión Pasarela Pagos 3.5%. Modelo "Alianza" (10% de ingreso bruto cedido al local).
             </div>
         </section>
 
@@ -632,11 +646,13 @@
             });
         };
         
+        // FINANCIAL CONSTANTS
         const CAPEX_PER_STATION = 65000;
         const KWH_PER_SESSION = 30;
         const PRICE_PER_KWH = 0.40;
         const COST_PER_KWH = 0.15;
         const FIXED_MONTHLY_COST_PER_STATION = 300; 
+        const PAYMENT_GATEWAY_FEE = 0.035; // 3.5% fee
         
         let roiChartInstance = null;
         const moneyFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -647,11 +663,14 @@
             const sessionsPerMonth = totalSessionsPerDay * 30;
             
             const monthlyRevenue = sessionsPerMonth * KWH_PER_SESSION * PRICE_PER_KWH;
+            
+            // OPEX Calculations
             const energyCost = sessionsPerMonth * KWH_PER_SESSION * COST_PER_KWH;
             const totalFixedCost = FIXED_MONTHLY_COST_PER_STATION * numStations;
+            const paymentFees = monthlyRevenue * PAYMENT_GATEWAY_FEE;
             const revenueShare = monthlyRevenue * 0.10; 
-            const monthlyOpex = energyCost + totalFixedCost + revenueShare;
             
+            const monthlyOpex = energyCost + totalFixedCost + paymentFees + revenueShare;
             const monthlyProfit = monthlyRevenue - monthlyOpex;
             
             let roiMonths = 'Nunca';
@@ -670,7 +689,7 @@
                 }
             }
 
-            return { totalCapex, monthlyRevenue, monthlyOpex, monthlyProfit, roiMonths, projectionData };
+            return { totalCapex, monthlyRevenue, monthlyOpex, monthlyProfit, roiMonths, projectionData, energyCost, totalFixedCost, paymentFees, revenueShare };
         };
 
         const updateDashboard = () => {
@@ -682,9 +701,16 @@
 
             const calc = calculateFinancials(sessions, stations);
 
+            // Update main metrics
             document.getElementById('metric-capex').innerText = moneyFmt.format(calc.totalCapex);
             document.getElementById('metric-revenue').innerText = moneyFmt.format(calc.monthlyRevenue);
             document.getElementById('metric-opex').innerText = moneyFmt.format(calc.monthlyOpex);
+            
+            // Update OPEX breakdown
+            document.getElementById('opex-energy').innerText = moneyFmt.format(calc.energyCost);
+            document.getElementById('opex-fixed').innerText = moneyFmt.format(calc.totalFixedCost);
+            document.getElementById('opex-payment').innerText = moneyFmt.format(calc.paymentFees);
+            document.getElementById('opex-revshare').innerText = moneyFmt.format(calc.revenueShare);
             
             const profitEl = document.getElementById('metric-profit');
             profitEl.innerText = moneyFmt.format(calc.monthlyProfit);
