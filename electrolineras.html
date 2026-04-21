@@ -479,25 +479,31 @@
                 </div>
 
                 <!-- Metrics Grid -->
-                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
+                <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
                         <span class="block text-xs text-slate-500 uppercase font-semibold">Inversión (CAPEX)</span>
                         <span id="metric-capex" class="block text-xl font-bold text-slate-900 mt-1">$65,000</span>
                     </div>
-                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1">
-                        <span class="block text-xs text-slate-500 uppercase font-semibold">Ingreso Mensual Bruto</span>
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Ingreso Mes Bruto</span>
                         <span id="metric-revenue" class="block text-xl font-bold text-slate-900 mt-1">$0</span>
                     </div>
-                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm lg:col-span-1 border-b-4 border-b-red-400">
-                        <span class="block text-xs text-slate-500 uppercase font-semibold">Costo Mensual (Opex)</span>
+                    <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm border-b-4 border-b-red-400">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Costo Mensual</span>
                         <span id="metric-opex" class="block text-xl font-bold text-red-500 mt-1">$0</span>
                     </div>
-                    <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 shadow-sm lg:col-span-1">
-                        <span class="block text-xs text-emerald-600 uppercase font-semibold">Utilidad Neta Mensual</span>
+                    <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 shadow-sm">
+                        <span class="block text-xs text-emerald-600 uppercase font-semibold">Utilidad Mes</span>
                         <span id="metric-profit" class="block text-xl font-bold text-emerald-700 mt-1">$0</span>
                     </div>
-                    <div class="bg-slate-900 p-4 rounded-lg shadow-sm lg:col-span-1 col-span-2">
-                        <span class="block text-xs text-slate-400 uppercase font-semibold">Retorno Inversión (ROI)</span>
+                    <!-- NUEVO: Rentabilidad Anual -->
+                    <div id="card-yield" class="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm">
+                        <span id="label-yield" class="block text-xs text-blue-600 uppercase font-semibold">Rentabilidad Anual</span>
+                        <span id="metric-yield" class="block text-xl font-bold text-blue-700 mt-1">0%</span>
+                    </div>
+                    <!-- Tiempo Recuperacion -->
+                    <div class="bg-slate-900 p-4 rounded-lg shadow-sm">
+                        <span class="block text-xs text-slate-400 uppercase font-semibold">Tiempo Retorno</span>
                         <span id="metric-roi" class="block text-xl font-bold text-white mt-1">-</span>
                     </div>
                 </div>
@@ -677,6 +683,10 @@
             if (monthlyProfit > 0) {
                 roiMonths = Math.ceil(totalCapex / monthlyProfit);
             }
+            
+            // NUEVO: Cálculo de rentabilidad anual (%)
+            const annualProfit = monthlyProfit * 12;
+            const annualYieldPercent = totalCapex > 0 ? (annualProfit / totalCapex) * 100 : 0;
 
             const projectionData = [];
             let cumulativeCash = -totalCapex;
@@ -689,7 +699,7 @@
                 }
             }
 
-            return { totalCapex, monthlyRevenue, monthlyOpex, monthlyProfit, roiMonths, projectionData, energyCost, totalFixedCost, paymentFees, revenueShare };
+            return { totalCapex, monthlyRevenue, monthlyOpex, monthlyProfit, roiMonths, projectionData, energyCost, totalFixedCost, paymentFees, revenueShare, annualYieldPercent };
         };
 
         const updateDashboard = () => {
@@ -715,6 +725,22 @@
             const profitEl = document.getElementById('metric-profit');
             profitEl.innerText = moneyFmt.format(calc.monthlyProfit);
             profitEl.className = calc.monthlyProfit >= 0 ? "block text-xl font-bold text-emerald-700 mt-1" : "block text-xl font-bold text-red-600 mt-1";
+
+            // NUEVO: Actualizar la tarjeta de Rentabilidad Anual (Yield)
+            const yieldEl = document.getElementById('metric-yield');
+            const cardYield = document.getElementById('card-yield');
+            const labelYield = document.getElementById('label-yield');
+            
+            yieldEl.innerText = calc.annualYieldPercent.toFixed(1) + '%';
+            if(calc.annualYieldPercent > 0) {
+                yieldEl.className = "block text-xl font-bold text-blue-700 mt-1";
+                labelYield.className = "block text-xs text-blue-600 uppercase font-semibold";
+                cardYield.className = "bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm";
+            } else {
+                yieldEl.className = "block text-xl font-bold text-red-600 mt-1";
+                labelYield.className = "block text-xs text-red-600 uppercase font-semibold";
+                cardYield.className = "bg-red-50 p-4 rounded-lg border border-red-100 shadow-sm";
+            }
 
             const roiEl = document.getElementById('metric-roi');
             if(calc.monthlyProfit <= 0) {
